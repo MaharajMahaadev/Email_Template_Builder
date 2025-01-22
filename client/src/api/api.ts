@@ -6,6 +6,12 @@ export const serverCalls = {
     return response.text();
   },
 
+  async getHistory(): Promise<any[]> {
+    const response = await fetch('https://email-template-builder-5hyq.onrender.com/data');
+    const data = await response.json();
+    return data.data;
+  },
+
   async saveTemplate(template: any): Promise<{ id: string }> {
     await fetch('https://email-template-builder-5hyq.onrender.com/upload', {
       method: 'POST',

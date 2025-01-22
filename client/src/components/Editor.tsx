@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, Save, Plus, Type, Image, MousePointer, Minus, Download, History, X, AArrowDown, AArrowUp, CircleEllipsisIcon } from 'lucide-react';
+import { Upload, AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, Save, Plus, Type, MousePointer, Minus, Download, History, X, AArrowDown, AArrowUp, CircleEllipsisIcon } from 'lucide-react';
 import type { EmailTemplate, Section } from '../types';
 import { serverCalls } from '../api/api';
 
@@ -7,21 +7,9 @@ export default function Editor() {
   const [ showHis, setShowHis] = useState(false);
   const [ templateHis, setTemplateHis ] = useState<EmailTemplate[]>([]);
   const [template, setTemplate] = useState<EmailTemplate>({
-    title: 'Welcome Email',
-    content: 'Welcome to our platform!',
+    title: '',
+    content: '',
     sections: [
-      {
-        id: '1',
-        type: 'text',
-        content: 'Hello there!',
-        order: 0,
-        styles: {
-          fontSize: '16px',
-          color: '#273746',
-          textAlign: 'left',
-          padding: '1rem'
-        }
-      }
     ]
   });
 
@@ -43,10 +31,8 @@ export default function Editor() {
 
     const fetchHistory = async () => {
       try{
-      const res = await fetch('https://email-template-builder-5hyq.onrender.com/data');
-      const data = await res.json();
-        console.log(data);
-        setTemplateHis(data.data);
+        const data = await serverCalls.getHistory();
+        setTemplateHis(data);
       }
       catch(err){
         console.log(err);
@@ -57,17 +43,24 @@ export default function Editor() {
   }, []);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTemplate(prev => ({
-          ...prev,
-          logoUrl: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
+    const file = e.target.files?.[0]; 
+
+  if (file) {
+    const MAX_SIZE = 500 * 1024; 
+    if (file.size > MAX_SIZE) {
+      alert("The image size exceeds 500 KB. Please upload a smaller image.");
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setTemplate((prev) => ({
+        ...prev,
+        logoUrl: reader.result as string,
+      }));
+    };
+    reader.readAsDataURL(file); 
+  }
   };
 
   const addSection = (type: Section['type']) => {
@@ -148,17 +141,17 @@ export default function Editor() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#e5e8e8]">
-      <History className='absolute top-2 left-2' onClick={() => setShowHis(true)} />
-      { showHis && <div className='absolute bg-sky-200 z-10 left-0 top-0 w-[250px]'>
+    <div className="relative min-h-screen bg-slate-100">
+      <History className='absolute top-2 right-2 cursor-pointer' onClick={() => setShowHis(true)} />
+      { showHis && <div className='absolute bg-slate-50/90 shadow-md  rounded-3xl h-full border-l-2 overflow-hidden border-[#273746] text-[#273746] z-10 right-0 top-0 w-[250px]'>
         <div className='p-2 w-full justify-between flex flex-row'>
-        <p>History</p>
-        <X onClick={() => setShowHis(false)} />
+        <p className='text-2xl font-bold underline-offset-1 underline'>History</p>
+        <X className='cursor-pointer text-red-500' onClick={() => setShowHis(false)} />
         </div>
-        <div>
+        <div className='space-y-2 overflow-auto h-full'>
           {
             templateHis.map((state,index) => 
-              <div onClick={() => setTemplate(state)} key={index} className='p-2 bg-rose-200 w-full h-fit border-y-2 border-x-black overflow-x-hidden'>
+              <div onClick={() => setTemplate(state)} key={index} className='p-2 w-full h-fit overflow-x-hidden shadow-md cursor-pointer'>
                 <p className='font-bold h-12 overflow-y-hidden'>{state.title}</p>
                 <p className='font-semibold h-24 overflow-y-hidden'>{state.content}</p>
               </div>
@@ -228,7 +221,7 @@ export default function Editor() {
                 }`}
                 onClick={() => setActiveSection(index)}
               >
-                <CircleEllipsisIcon />
+                <CircleEllipsisIcon className='h-5 font-semibold place-self-end mx-4 cursor-pointer' />
                 {/* Section Content */}
                 <div className="p-4">
                   {section.type === 'text' && (
@@ -417,13 +410,6 @@ export default function Editor() {
                     >
                       <MousePointer className="w-4 h-4 mr-2" />
                       Button
-                    </button>
-                    <button
-                      onClick={() => addSection('image')}
-                      className="flex items-center p-2 hover:bg-gray-50 rounded"
-                    >
-                      <Image className="w-4 h-4 mr-2" />
-                      Image
                     </button>
                     <button
                       onClick={() => addSection('divider')}

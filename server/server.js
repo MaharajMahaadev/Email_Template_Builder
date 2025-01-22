@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.MONGO_CLIENT}:${process.env.MONGO_PASS}@clusterfree.htbcl.mongodb.net/?retryWrites=true&w=majority&appName=ClusterFree`;
 
@@ -71,11 +73,11 @@ app.get('/data', async(req, res) => {
     const data = await collection.find({}).toArray();
     console.log(data);
     res.json({ data });
-} catch (err) {
-    res.status(500).json({ error: 'Failed to save email configuration.'+err });
-} finally {
-    await client.close();
-}
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to save email configuration.'+err });
+    } finally {
+        await client.close();
+    }
 })
 
 app.post('/render', async(req,res) => {
@@ -89,23 +91,27 @@ app.post('/render', async(req,res) => {
             console.error('Error reading layout.html:', err);
             return res.status(500).send('Error loading template');
         }
+        
+        const logoSection = template.logoUrl ? `<div class="logo"><img src="${template.logoUrl}" alt="Logo"></div>`: '';
+
+        layoutHtml = layoutHtml.replace(/{{#if logoUrl}}([\s\S]*?){{\/if}}/g, logoSection);
 
         layoutHtml = layoutHtml
             .replace(/{{title}}/g, template.title || 'Default Title')
             .replace(/{{content}}/g, template.content || 'Default Content');
 
-            const sectionsHtml = (template.sections || []).map((section) => {
-              if (section.type === 'text') {
-                return `<div style="${styleToString(section.styles)}">${section.content}</div>`;
-              } else if (section.type === 'button') {
-                return `<a href="#" class="button" style="${styleToString(section.styles)}">${section.content}</a>`;
-              } else if (section.type === 'divider') {
-                return '<hr class="divider">';
-              }
-              return '';
-            }).join('\n');
+        const sectionsHtml = (template.sections || []).map((section) => {
+          if (section.type === 'text') {
+            return `<div style="${styleToString(section.styles)}">${section.content}</div>`;
+          } else if (section.type === 'button') {
+            return `<a href="#" class="button" style="${styleToString(section.styles)}">${section.content}</a>`;
+          } else if (section.type === 'divider') {
+            return '<hr class="divider">';
+          }
+          return '';
+        }).join('\n');
 
-            layoutHtml = layoutHtml.replace(/{{#each sections}}[\s\S]*?{{\/each}}/g, sectionsHtml);
+        layoutHtml = layoutHtml.replace(/{{#each sections}}[\s\S]*?{{\/each}}/g, sectionsHtml);
 
         res.send(layoutHtml);
       })
@@ -113,16 +119,16 @@ app.post('/render', async(req,res) => {
 });
 
 
-  async function run() {
-    try {
-      await client.connect();
-      await client.db("admin").command({ ping: 1 });
-      console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } finally {
-      await client.close();
-    }
+async function run() {
+  try {
+    await client.connect();
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    await client.close();
   }
-  run().catch(console.dir);
+}
+run().catch(console.dir);
 
 app.listen(PORT, () => {
     console.log('Server is running on port: ' + PORT);
