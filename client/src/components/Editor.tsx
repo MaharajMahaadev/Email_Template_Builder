@@ -43,7 +43,7 @@ export default function Editor() {
 
     const fetchHistory = async () => {
       try{
-      const res = await fetch('http://localhost:5000/data');
+      const res = await fetch('https://email-template-builder-5hyq.onrender.com/data');
       const data = await res.json();
         console.log(data);
         setTemplateHis(data.data);

@@ -2,12 +2,12 @@ let savedTemplates: any[] = [];
 
 export const serverCalls = {
   async getLayoutTemplate(): Promise<string> {
-    const response = await fetch('http://localhost:5000/layout');
+    const response = await fetch('https://email-template-builder-5hyq.onrender.com/layout');
     return response.text();
   },
 
   async saveTemplate(template: any): Promise<{ id: string }> {
-    await fetch('http://localhost:5000/upload', {
+    await fetch('https://email-template-builder-5hyq.onrender.com/upload', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -20,7 +20,7 @@ export const serverCalls = {
   },
 
   async generateHtml(template: any): Promise<string> {
-    const res = await fetch('http://localhost:5000/render', {
+    const res = await fetch('https://email-template-builder-5hyq.onrender.com/render', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json'},
       body: JSON.stringify(template)
